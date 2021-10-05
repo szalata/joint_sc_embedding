@@ -1,0 +1,6 @@
+name: joint_sc_embedding
+channels:
+  - defaults
+dependencies:
+  - python=3.9
+prefix: /home/szalata/anaconda3/envs/joint_sc_embedding
