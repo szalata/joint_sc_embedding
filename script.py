@@ -28,7 +28,7 @@ par = {
     'input_mod1': dataset_path + 'mod1.h5ad',
     'input_mod2': dataset_path + 'mod2.h5ad',
     'output': 'output.h5ad',
-    'n_dim': 50,
+    'n_dim': 100,
 }
 
 ## VIASH END
