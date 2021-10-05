@@ -1,0 +1,7 @@
+.idea
+.nextflow.log
+.nextflow/
+output/
+submission.zip
+target/
+work/
