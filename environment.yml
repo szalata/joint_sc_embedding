@@ -5,4 +5,7 @@ dependencies:
   - python=3.9
   - anndata
   - umap-learn
+  - jupyterlab
+  - r-base
+  - setuptools=52
 prefix: /home/szalata/anaconda3/envs/joint_sc_embedding
