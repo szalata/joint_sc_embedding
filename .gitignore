@@ -5,3 +5,5 @@ output/
 submission.zip
 target/
 work/
+output.h5ad
+*/.ipynb_checkpoints
