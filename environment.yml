@@ -2,10 +2,13 @@ name: joint_sc_embedding
 channels:
   - defaults
 dependencies:
-  - python=3.9
-  - anndata
-  - umap-learn
   - jupyterlab
+  - seaborn
+  - scikit-learn
+  - statsmodels
+  - pytables
+  - numba
   - r-base
-  - setuptools=52
+  - python=3.8
+  - ipykernel
 prefix: /home/szalata/anaconda3/envs/joint_sc_embedding
