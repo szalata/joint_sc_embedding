@@ -10,6 +10,8 @@ def evaluate(adata_solution, adata_joint, bio_metrics_weight=0.6, batch_metrics_
              chosen_metrics=("nmi_ATAC", "asw_label_ATAC", "cc_cons_ATAC", "ti_cons_mean_ATAC",
                              "cc_cons_ATAC", "ti_cons_mean_ATAC")):
     """
+    All the scores appear to be computed correctly, but ti_cons_mean_ATAC is 0.043 higher than on evalai. This may be due to another version of scIB.
+    
     :param chosen_metrics:
     :param adata_solution: adata with solutins, e.g. from <dataset_path + "solution.h5ad"> file
     :param adata_joint: adata with joint_embeddings. Creatd e.g. like that;
@@ -45,6 +47,7 @@ def evaluate(adata_solution, adata_joint, bio_metrics_weight=0.6, batch_metrics_
         inplace=True,
         force=True
     )
+    scores["nmi_ATAC"] = nmi(adata_joint, group1='cluster', group2='cell_type')
 
     # Compute score
     scores["asw_batch_ATAC"] = silhouette_batch(
@@ -56,7 +59,6 @@ def evaluate(adata_solution, adata_joint, bio_metrics_weight=0.6, batch_metrics_
     )
     
     scores["graph_conn_ATAC"] = graph_connectivity(adata_joint, label_key='cell_type')
-    scores["nmi_ATAC"] = nmi(adata_joint, group1='cluster', group2='cell_type')
     scores["asw_label_ATAC"] = silhouette(adata_joint, group_key='cell_type', embed='X_emb')
     scores["cc_cons_ATAC"] = cell_cycle(
         adata_pre=adata_solution,
