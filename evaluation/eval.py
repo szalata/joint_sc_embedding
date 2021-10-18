@@ -1,18 +1,16 @@
 from statistics import mean
 
-import anndata as ad
 import numpy as np
 import scanpy as sc
 from scIB.metrics import silhouette_batch, graph_connectivity, nmi, silhouette, cell_cycle, trajectory_conservation
 from scIB.clustering import opt_louvain
-
-from sklearn.decomposition import TruncatedSVD
 
 
 def evaluate(adata_solution, adata_joint, bio_metrics_weight=0.6, batch_metrics_weight=0.4,
              chosen_metrics=("nmi_ATAC", "asw_label_ATAC", "cc_cons_ATAC", "ti_cons_mean_ATAC",
                              "cc_cons_ATAC", "ti_cons_mean_ATAC")):
     """
+    :param chosen_metrics:
     :param adata_solution: adata with solutins, e.g. from <dataset_path + "solution.h5ad"> file
     :param adata_joint: adata with joint_embeddings. Creatd e.g. like that;
         adata = ad.AnnData(
