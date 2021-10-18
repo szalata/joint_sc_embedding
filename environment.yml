@@ -13,4 +13,10 @@ dependencies:
   - ipykernel
   - ipywidgets[version='>=7.6']
   - plotly=5.3.1
+  - torchaudio
+  - torchvision
+  - pytorch
+  - cudatoolkit=10.1
+  - mlflow
+  - umap-learn
 prefix: /home/szalata/anaconda3/envs/joint_sc_embedding
