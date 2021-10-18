@@ -10,7 +10,21 @@ from sklearn.decomposition import TruncatedSVD
 
 
 def evaluate(adata_solution, adata_joint, bio_metrics_weight=0.6, batch_metrics_weight=0.4,
-             chosen_metrics=["nmi_ATAC", "asw_label_ATAC", "cc_cons_ATAC", "ti_cons_mean_ATAC", "cc_cons_ATAC", "ti_cons_mean_ATAC"]):
+             chosen_metrics=("nmi_ATAC", "asw_label_ATAC", "cc_cons_ATAC", "ti_cons_mean_ATAC",
+                             "cc_cons_ATAC", "ti_cons_mean_ATAC")):
+    """
+    :param adata_solution: adata with solutins, e.g. from <dataset_path + "solution.h5ad"> file
+    :param adata_joint: adata with joint_embeddings. Creatd e.g. like that;
+        adata = ad.AnnData(
+            X=pca_combined,
+            obs=mod1_obs,
+            uns={'dataset_id': mod1_uns['dataset_id']},
+        )
+        adata.obs['batch'] = adata_solution.obs['batch'][adata.obs_names]
+        adata.obs['cell_type'] = adata_solution.obs['cell_type'][adata.obs_names]
+        adata.obsm['X_emb'] = adata.X
+    :return:
+    """
     scores = {}
     chosen_metrics = set(chosen_metrics)
     
@@ -19,7 +33,8 @@ def evaluate(adata_solution, adata_joint, bio_metrics_weight=0.6, batch_metrics_
     
     recompute_cc = 'S_score' not in adata_solution.obs_keys() or \
                'G2M_score' not in adata_solution.obs_keys()
-    adt_atac_trajectory = 'pseudotime_order_ATAC' if 'pseudotime_order_ATAC' in adata_solution.obs else 'pseudotime_order_ADT'
+    adt_atac_trajectory = 'pseudotime_order_ATAC' \
+        if 'pseudotime_order_ATAC' in adata_solution.obs else 'pseudotime_order_ADT'
     
     # preprocessing for graph connectivity
     sc.pp.neighbors(adata_joint, use_rep='X_emb')
@@ -75,6 +90,13 @@ def evaluate(adata_solution, adata_joint, bio_metrics_weight=0.6, batch_metrics_
 
     scores["ti_cons_mean_ATAC"] = (score_rna + score_adt_atac) / 2
     
-    scores["overall"] = bio_metrics_weight * mean([scores[bio_metric] for bio_metric in ["nmi_ATAC", "asw_label_ATAC", "cc_cons_ATAC", "ti_cons_mean_ATAC"] if bio_metric in chosen_metrics]) + \
-        batch_metrics_weight * mean([scores[batch_metric] for batch_metric in ["cc_cons_ATAC", "ti_cons_mean_ATAC"] if batch_metric in chosen_metrics])
+    scores["overall"] = bio_metrics_weight * mean([scores[bio_metric]
+                                                   for bio_metric in ["nmi_ATAC", "asw_label_ATAC",
+                                                                      "cc_cons_ATAC",
+                                                                      "ti_cons_mean_ATAC"]
+                                                   if bio_metric in chosen_metrics]) + \
+                        batch_metrics_weight * mean([scores[batch_metric]
+                                                     for batch_metric in ["cc_cons_ATAC",
+                                                                          "ti_cons_mean_ATAC"]
+                                                     if batch_metric in chosen_metrics])
     return scores
