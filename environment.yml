@@ -2,7 +2,7 @@ name: joint_sc_embedding
 channels:
   - defaults
 dependencies:
-  - jupyterlab
+  - jupyterlab[version='>=3']
   - seaborn
   - scikit-learn
   - statsmodels
@@ -11,4 +11,6 @@ dependencies:
   - r-base
   - python=3.8
   - ipykernel
+  - ipywidgets[version='>=7.6']
+  - plotly=5.3.1
 prefix: /home/szalata/anaconda3/envs/joint_sc_embedding
