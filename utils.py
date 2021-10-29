@@ -12,18 +12,17 @@ def load_dataset(path='output/datasets/joint_embedding/openproblems_bmmc_multiom
     ad_mod1.obs['cell_type'] = adata_solution.obs['cell_type'][ad_mod1.obs_names]
     return ad_mod1, ad_mod2, adata_solution
 
-def evaluate_solution(ad_mod1, ad_solution, embedding):
+def evaluate_solution(ad_solution, embedding):
     # put into anndata
     adata = ad.AnnData(
         X=embedding,
-        obs=ad_mod1.obs,
-        uns={
-            'dataset_id': ad_mod1.uns['dataset_id']
-        },
+        obs=ad_solution.obs
     )
     # Transfer obs annotations
-    adata.obs['batch'] = ad_solution.obs['batch'][adata.obs_names]
-    adata.obs['cell_type'] = ad_solution.obs['cell_type'][adata.obs_names]
+    obs_names = adata.obs_names
+
+    adata.obs['batch'] = ad_solution.obs['batch'][obs_names]
+    adata.obs['cell_type'] = ad_solution.obs['cell_type'][obs_names]
 
     # Preprocessing
     adata.obsm['X_emb'] = adata.X

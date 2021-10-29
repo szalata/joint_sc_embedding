@@ -39,10 +39,11 @@ def main():
     embedder_mod1 = umap.UMAP(n_components=n_dim // 2)
     mod2_pca = embedder_mod1.fit_transform(ad_mod2.X)
     del ad_mod2
+    del ad_mod1
 
     # 'Concatenating datasets'
     pca_combined = np.concatenate([mod1_pca, mod2_pca], axis=1)
-    scores = evaluate_solution(ad_mod1, ad_solution, pca_combined)
+    scores = evaluate_solution(ad_solution, pca_combined)
     print(scores)
 
     mlflow.set_experiment(EXPERIMENT_NAME)
