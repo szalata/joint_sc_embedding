@@ -36,11 +36,13 @@ def main():
     if args.use_raw_counts:
         ad_mod12.X = ad_mod12.layers["counts"]
     ad_mod12.obs["batch_id"] = 1
+    ad_mod12.obs["site_donor"] = ad_mod2.obs.batch
     del ad_mod1
     del ad_mod2
     organized_anndata = scvi.data.organize_multiome_anndatas(ad_mod12, modality_key="feature_types")
     del ad_mod12
-    scvi.model.MULTIVI.setup_anndata(organized_anndata, batch_key="feature_types")
+    scvi.model.MULTIVI.setup_anndata(organized_anndata, batch_key="feature_types",
+                                     categorical_covariate_keys=["site_donor"])
     n_genes = (organized_anndata.var.feature_types == "GEX").sum()
     vae = scvi.model.MULTIVI(organized_anndata, n_genes=n_genes,
                              n_regions=organized_anndata.shape[1] - n_genes, n_latent=args.n_dim)

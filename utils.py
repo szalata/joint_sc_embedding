@@ -26,5 +26,4 @@ def evaluate_solution(ad_solution, embedding):
 
     # Preprocessing
     adata.obsm['X_emb'] = adata.X
-    del ad_mod1
     return evaluate(ad_solution, adata)
