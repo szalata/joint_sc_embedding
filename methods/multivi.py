@@ -1,4 +1,7 @@
 import sys
+
+from scipy.sparse import csr_matrix
+
 sys.path.append('/mnt/storage01/szalata/autoencoders')
 
 import argparse
@@ -35,6 +38,7 @@ def main():
     ad_mod12 = ad.concat((ad_mod1, ad_mod2), axis=1)
     if not args.use_normalized_counts:
         ad_mod12.X = ad_mod12.layers["counts"]
+        ad_mod12.X = csr_matrix(ad_mod12.X)
     ad_mod12.obs["batch_id"] = 1
     ad_mod12.obs["site_donor"] = ad_mod2.obs.batch
     del ad_mod1

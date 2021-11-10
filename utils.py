@@ -1,4 +1,5 @@
 import anndata as ad
+import scanpy as sc
 
 from evaluation.eval import evaluate
 
@@ -27,4 +28,8 @@ def evaluate_solution(ad_solution, embedding, run_name):
     # Preprocessing
     adata.obsm['X_emb'] = adata.X
     adata.write(f"output/embeddings/{run_name}.h5ad")
+    sc.pp.neighbors(adata, use_rep="X")
+    sc.tl.umap(adata)
+    sc.pl.umap(adata, color='cell_type', save=f"output/embeddings/{run_name}_celltype_plot.png")
+    sc.pl.umap(adata, color='batch', save=f"output/embeddings/{run_name}_batch_plot.png")
     return evaluate(ad_solution, adata)
