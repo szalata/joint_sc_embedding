@@ -42,10 +42,10 @@ def main():
     organized_anndata = scvi.data.organize_multiome_anndatas(ad_mod12, modality_key="feature_types")
     del ad_mod12
     scvi.model.MULTIVI.setup_anndata(organized_anndata, batch_key="feature_types",
-                                     categorical_covariate_keys=["site_donor"])
+                                           categorical_covariate_keys=["site_donor"])
     n_genes = (organized_anndata.var.feature_types == "GEX").sum()
     vae = scvi.model.MULTIVI(organized_anndata, n_genes=n_genes,
-                             n_regions=organized_anndata.shape[1] - n_genes, n_latent=args.n_dim)
+                                   n_regions=organized_anndata.shape[1] - n_genes, n_latent=args.n_dim)
     vae.train(batch_size=1280, max_epochs=500)
     latent_vector = vae.get_latent_representation()
     scores = evaluate_solution(ad_solution, latent_vector, args.run_name)
