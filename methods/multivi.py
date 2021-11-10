@@ -50,7 +50,7 @@ def main():
     n_genes = (organized_anndata.var.feature_types == "GEX").sum()
     vae = scvi.model.MULTIVI(organized_anndata, n_genes=n_genes,
                                    n_regions=organized_anndata.shape[1] - n_genes, n_latent=args.n_dim)
-    vae.train(batch_size=1280, max_epochs=500)
+    vae.train(batch_size=1280, max_epochs=500, early_stopping=True)
     latent_vector = vae.get_latent_representation()
     scores = evaluate_solution(ad_solution, latent_vector, args.run_name)
     print(scores)

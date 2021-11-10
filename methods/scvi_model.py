@@ -42,7 +42,7 @@ def main():
     ad_mod1.obs["site_donor"] = ad_mod1.obs.batch
     scvi.model.SCVI.setup_anndata(ad_mod1, batch_key="batch")
     vae = scvi.model.SCVI(ad_mod1, n_latent=args.n_dim)
-    vae.train(batch_size=1280, max_epochs=500)
+    vae.train(batch_size=1280, max_epochs=500, early_stopping=True)
     latent_vector = vae.get_latent_representation()
     scores = evaluate_solution(ad_solution, latent_vector, args.run_name)
     print(scores)
