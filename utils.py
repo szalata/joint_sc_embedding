@@ -12,7 +12,7 @@ def load_dataset(path='output/datasets/joint_embedding/openproblems_bmmc_multiom
     ad_mod1.obs['cell_type'] = adata_solution.obs['cell_type'][ad_mod1.obs_names]
     return ad_mod1, ad_mod2, adata_solution
 
-def evaluate_solution(ad_solution, embedding):
+def evaluate_solution(ad_solution, embedding, run_name):
     # put into anndata
     adata = ad.AnnData(
         X=embedding,
@@ -26,4 +26,5 @@ def evaluate_solution(ad_solution, embedding):
 
     # Preprocessing
     adata.obsm['X_emb'] = adata.X
+    adata.write(f"output/embeddings/{run_name}.h5ad")
     return evaluate(ad_solution, adata)

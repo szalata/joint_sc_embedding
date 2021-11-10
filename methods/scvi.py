@@ -1,11 +1,14 @@
 import sys
+
+from scipy.sparse import csr_matrix
+
 sys.path.append('/mnt/storage01/szalata/autoencoders')
 
 import argparse
 import mlflow
 import torch
-import numpy as np
-import umap
+import scvi
+import anndata as ad
 from utils import load_dataset, evaluate_solution
 
 
@@ -22,6 +25,7 @@ def main():
                                                   ".output_", type=str,
                         help="Path to the dataset.")
     parser.add_argument("--use_sample_data", action='store_true')
+    parser.add_argument("--use_normalized_counts", action='store_true')
     parser.add_argument("--n_dim", type=int, default=100)
     parser.add_argument("--run_name", default=None, type=str, help="name of the mlflow run")
 
@@ -30,20 +34,17 @@ def main():
         args.dataset_path = "sample_data/openproblems_bmmc_multiome_starter/openproblems_bmmc_multiome_starter."
 
 
-    ad_mod1, ad_mod2, ad_solution = load_dataset(path=args.dataset_path)
-    n_dim = args.n_dim
-
-    embedder_mod1 = umap.UMAP(n_components=n_dim // 2)
-    mod1_pca = embedder_mod1.fit_transform(ad_mod1.X)
-    # 'Performing dimensionality reduction on modality 2 values...'
-    embedder_mod1 = umap.UMAP(n_components=n_dim // 2)
-    mod2_pca = embedder_mod1.fit_transform(ad_mod2.X)
-    del ad_mod2
-    del ad_mod1
-
-    # 'Concatenating datasets'
-    pca_combined = np.concatenate([mod1_pca, mod2_pca], axis=1)
-    scores = evaluate_solution(ad_solution, pca_combined, args.run_name)
+    ad_mod1, _, ad_solution = load_dataset(path=args.dataset_path)
+    if not args.use_normalized_counts:
+        ad_mod1.X = ad_mod1.layers["counts"]
+        ad_mod1.X = csr_matrix(ad_mod1.X)
+    ad_mod1.obs["batch_id"] = 2
+    ad_mod1.obs["site_donor"] = ad_mod1.obs.batch
+    scvi.model.SCVI.setup_anndata(ad_mod1, batch_key="batch")
+    vae = scvi.model.SCVI(ad_mod1, n_latent=args.n_dim)
+    vae.train(batch_size=1280, max_epochs=500)
+    latent_vector = vae.get_latent_representation()
+    scores = evaluate_solution(ad_solution, latent_vector, args.run_name)
     print(scores)
 
     mlflow.set_experiment(EXPERIMENT_NAME)

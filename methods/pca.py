@@ -22,7 +22,7 @@ def main():
                                                   ".output_", type=str,
                         help="Path to the dataset.")
     parser.add_argument("--use_sample_data", action='store_true')
-    parser.add_argument("--n_dim", type=int, default=50)
+    parser.add_argument("--n_dim", type=int, default=100)
     parser.add_argument("--run_name", default=None, type=str, help="name of the mlflow run")
 
     args = parser.parse_args()
@@ -42,7 +42,7 @@ def main():
 
     # 'Concatenating datasets'
     pca_combined = np.concatenate([mod1_pca, mod2_pca], axis=1)
-    scores = evaluate_solution(ad_solution, pca_combined)
+    scores = evaluate_solution(ad_solution, pca_combined, args.run_name)
     print(scores)
 
     mlflow.set_experiment(EXPERIMENT_NAME)

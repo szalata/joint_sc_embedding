@@ -22,7 +22,7 @@ def main():
                                                   ".output_", type=str,
                         help="Path to the dataset.")
     parser.add_argument("--use_sample_data", action='store_true')
-    parser.add_argument("--use_raw_counts", action='store_true')
+    parser.add_argument("--use_normalized_counts", action='store_true')
     parser.add_argument("--n_dim", type=int, default=100)
     parser.add_argument("--run_name", default=None, type=str, help="name of the mlflow run")
 
@@ -33,7 +33,7 @@ def main():
 
     ad_mod1, ad_mod2, ad_solution = load_dataset(path=args.dataset_path)
     ad_mod12 = ad.concat((ad_mod1, ad_mod2), axis=1)
-    if args.use_raw_counts:
+    if not args.use_normalized_counts:
         ad_mod12.X = ad_mod12.layers["counts"]
     ad_mod12.obs["batch_id"] = 1
     ad_mod12.obs["site_donor"] = ad_mod2.obs.batch
@@ -48,7 +48,7 @@ def main():
                              n_regions=organized_anndata.shape[1] - n_genes, n_latent=args.n_dim)
     vae.train(batch_size=1280, max_epochs=500)
     latent_vector = vae.get_latent_representation()
-    scores = evaluate_solution(ad_solution, latent_vector)
+    scores = evaluate_solution(ad_solution, latent_vector, args.run_name)
     print(scores)
 
     mlflow.set_experiment(EXPERIMENT_NAME)
