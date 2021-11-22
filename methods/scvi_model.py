@@ -8,7 +8,6 @@ import argparse
 import mlflow
 import torch
 import scvi
-import anndata as ad
 from utils import load_dataset, evaluate_solution
 
 
