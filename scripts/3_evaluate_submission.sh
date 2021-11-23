@@ -3,7 +3,7 @@
 set -e
 
 # change these parameters if need be
-PIPELINE_VERSION="1.2.0"
+PIPELINE_VERSION="1.4.0"
 
 # ViashSourceDir: return the path of a bash file, following symlinks
 # usage   : ViashSourceDir ${BASH_SOURCE[0]}
@@ -37,7 +37,7 @@ bin/nextflow run \
   openproblems-bio/neurips2021_multimodal_viash \
   -r $PIPELINE_VERSION \
   -main-script src/joint_embedding/workflows/evaluate_submission/main.nf \
-  --solutionDir 'output/datasets/joint_embedding' \
+  --solutionDir 'output/datasets_phase1v2/joint_embedding' \
   --predictions 'output/predictions/joint_embedding/**.h5ad' \
   --publishDir 'output/evaluation/joint_embedding' \
   -resume \

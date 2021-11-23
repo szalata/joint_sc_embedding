@@ -17,24 +17,6 @@ function get_script_dir {
   done
   cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd
 }
-function aws_sync {
-  CMD="$1"
-  SOURCE="$2"
-  DEST="$3"
-  # use aws cli if installed
-  if command -v aws &> /dev/null; then
-    aws s3 "$CMD" --no-sign-request "$SOURCE" "$DEST"
-  # else use aws docker container instead
-  else
-    docker run \
-      --user $(id -u):$(id -g) \
-      --rm -it \
-      -v $(pwd)/output:/output \
-      -w / \
-      amazon/aws-cli \
-      s3 "$CMD" --no-sign-request "$SOURCE" "$DEST"
-  fi
-}
 
 # get_latest_release: get the version number of the latest release on git
 function get_latest_release {
@@ -70,61 +52,16 @@ bin/viash build config.vsh.yaml -o target/nextflow -p nextflow \
 
 echo ""
 echo "######################################################################"
-echo "##                      Sync datasets from S3                       ##"
-echo "######################################################################"
-
-# don't sync data when testing the development starter kits
-if [[ $PIPELINE_VERSION != "main_build" ]]; then
-  VERSION_FILE="output/datasets_phase1v2/joint_embedding/VERSION"
-
-  # if the data is not found or is from a previous version starter kit,
-  # sync from aws to local
-  if [[ ! -f $VERSION_FILE || `cat $VERSION_FILE` != $PIPELINE_VERSION ]]; then
-    mkdir -p output/datasets_phase1v2/joint_embedding/
-    mkdir -p output/datasets_phase2/joint_embedding/
-
-    # use aws cli if installed
-    aws_sync sync "s3://openproblems-bio/public/phase1v2-data/joint_embedding/" "output/datasets_phase1v2/joint_embedding/"
-    aws_sync sync "s3://openproblems-bio/public/phase2-data/joint_embedding/" "output/datasets_phase2/joint_embedding/"
-    aws_sync cp "s3://openproblems-bio/public/phase1v2-data/meta.tsv" "output/datasets_phase1v2/meta.tsv"
-    aws_sync cp "s3://openproblems-bio/public/phase2-data/meta.tsv" "output/datasets_phase2/meta.tsv"
-
-    echo "$PIPELINE_VERSION" > $VERSION_FILE
-  fi
-fi
-
-echo ""
-echo "######################################################################"
-echo "##            Generating submission files using nextflow            ##"
-echo "######################################################################"
-
-export NXF_VER=21.04.1
-
-# removing previous output
-[ -d output/predictions/joint_embedding/ ] && rm -r output/predictions/joint_embedding/
-
-bin/nextflow \
-  run openproblems-bio/neurips2021_multimodal_viash \
-  -r $PIPELINE_VERSION \
-  -main-script src/joint_embedding/workflows/generate_submission/main.nf \
-  --datasets 'output/datasets_phase1v2/joint_embedding/**.h5ad' \
-  --publishDir output/predictions/joint_embedding/ \
-  -resume \
-  -latest \
-  -c scripts/nextflow.config
-
-echo ""
-echo "######################################################################"
 echo "##                      Creating submission zip                     ##"
 echo "######################################################################"
-[ -f submission_phase1v2.zip ] && rm submission_phase1v2.zip
-zip -9 -r -q submission_phase1v2.zip . \
+[ -f submission_phase2.zip ] && rm submission_phase2.zip
+zip -9 -r -q submission_phase2.zip . \
   --exclude=*.git* \
   --exclude=*.nextflow* \
   --exclude=*work* \
   --exclude=*.DS_Store* \
   --exclude=nextflow.config \
-  --exclude=output/datasets*/* \
+  --exclude=output/* \
   --exclude=submission*zip \
   --exclude=bin/*
 
@@ -137,12 +74,16 @@ echo "Please upload your submission at the link below:"
 echo "  https://eval.ai/web/challenges/challenge-page/1111/submission"
 echo ""
 echo "Or use the command below create a private submission:"
-echo "> evalai challenge 1111 phase 2278 submit --file submission_phase1v2.zip --large --private"
+echo "> evalai challenge 1111 phase 2281 submit --file submission_phase2.zip --large --private"
 echo ""
 echo "Or this command to create a public one:"
-echo "> evalai challenge 1111 phase 2278 submit --file submission_phase1v2.zip --large --public"
+echo "> evalai challenge 1111 phase 2281 submit --file submission_phase2.zip --large --public"
 echo ""
 echo "Good luck!"
+echo ""
+echo "PLEASE NOTE: the number of submissions for the phase 2 leaderboard is limited."
+echo "Make sure your component is working using the phase 1 leaderboard before submitting"
+echo "to phase 2."
 
 if [ $PIPELINE_VERSION != $LATEST_RELEASE ]; then
   echo ""

@@ -16,9 +16,9 @@ def main():
     parser = argparse.ArgumentParser()
 
     # Other parameters
-    parser.add_argument("--dataset_path", default="output/datasets/joint_embedding/"
-                                                  "openproblems_bmmc_multiome_phase1/"
-                                                  "openproblems_bmmc_multiome_phase1.censor_dataset"
+    parser.add_argument("--dataset_path", default="output/datasets_phase2/joint_embedding/"
+                                                  "openproblems_bmmc_multiome_phase2/"
+                                                  "openproblems_bmmc_multiome_phase2.censor_dataset"
                                                   ".output_", type=str,
                         help="Path to the dataset.")
     parser.add_argument("--use_sample_data", action='store_true')

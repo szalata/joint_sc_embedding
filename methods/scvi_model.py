@@ -18,9 +18,9 @@ def main():
     parser = argparse.ArgumentParser()
 
     # Other parameters
-    parser.add_argument("--dataset_path", default="output/datasets/joint_embedding/"
-                                                  "openproblems_bmmc_multiome_phase1/"
-                                                  "openproblems_bmmc_multiome_phase1.censor_dataset"
+    parser.add_argument("--dataset_path", default="output/datasets_phase2/joint_embedding/"
+                                                  "openproblems_bmmc_multiome_phase2/"
+                                                  "openproblems_bmmc_multiome_phase2.censor_dataset"
                                                   ".output_", type=str,
                         help="Path to the dataset.")
     parser.add_argument("--use_sample_data", action='store_true')
@@ -56,6 +56,27 @@ def main():
         mlflow.log_params(vars(args))
 
         for key, value in scores.items():
+            mlflow.log_metric(key, value)
+
+    all_scores = []
+    for seed in range(args.seeds):
+        all_scores.append(method_evaluate(args, seed))
+    mean_scores = pd.DataFrame(all_scores).mean()
+    mean_scores = pd.Series(mean_scores.values, index=mean_scores.index.map(lambda x: x + "_mean"))
+    std_scores = pd.DataFrame(all_scores).std()
+    std_scores = pd.Series(std_scores.values, index=std_scores.index.map(lambda x: x + "_std"))
+    all_scores = pd.concat((mean_scores, std_scores), axis=0)
+    all_scores = all_scores.to_dict()
+    mlflow.set_experiment(EXPERIMENT_NAME)
+    with mlflow.start_run(run_name=args.run_name):
+        mlflow.log_params({
+            "pytorch version": torch.__version__,
+            "cuda version": torch.version.cuda,
+            "device name": torch.cuda.get_device_name(0)
+        })
+        mlflow.log_params(vars(args))
+
+        for key, value in all_scores.items():
             mlflow.log_metric(key, value)
 
 if __name__ == "__main__":

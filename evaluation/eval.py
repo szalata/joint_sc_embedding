@@ -6,7 +6,7 @@ from scIB.metrics import silhouette_batch, graph_connectivity, nmi, silhouette, 
 from scIB.clustering import opt_louvain
 
 
-def evaluate(adata_solution, adata_joint, bio_metrics_weight=0.6, batch_metrics_weight=0.4,
+def evaluate(adata_solution, adata_joint,
              chosen_metrics=("nmi_ATAC", "asw_label_ATAC", "cc_cons_ATAC", "ti_cons_mean_ATAC",
                              "cc_cons_ATAC", "ti_cons_mean_ATAC")):
     """
@@ -89,14 +89,5 @@ def evaluate(adata_solution, adata_joint, bio_metrics_weight=0.6, batch_metrics_
         score_adt_atac = np.nan
 
     scores["ti_cons_mean_ATAC"] = (score_rna + score_adt_atac) / 2
-    
-    scores["overall"] = bio_metrics_weight * mean([scores[bio_metric]
-                                                   for bio_metric in ["nmi_ATAC", "asw_label_ATAC",
-                                                                      "cc_cons_ATAC",
-                                                                      "ti_cons_mean_ATAC"]
-                                                   if bio_metric in chosen_metrics]) + \
-                        batch_metrics_weight * mean([scores[batch_metric]
-                                                     for batch_metric in ["cc_cons_ATAC",
-                                                                          "ti_cons_mean_ATAC"]
-                                                     if batch_metric in chosen_metrics])
+    scores["overall"] =  mean([scores[metric] for metric in chosen_metrics])
     return scores
