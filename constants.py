@@ -1,0 +1,1 @@
+DATA_SPLITS = ["train", "val", "test"]

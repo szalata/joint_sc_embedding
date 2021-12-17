@@ -2,6 +2,8 @@ from statistics import mean
 
 import numpy as np
 import scanpy as sc
+import os
+os.environ["R_HOME"] = r"/home/szalata/anaconda3/envs/joint_sc_embedding/lib/R"
 from scIB.metrics import silhouette_batch, graph_connectivity, nmi, silhouette, cell_cycle, trajectory_conservation
 from scIB.clustering import opt_louvain
 

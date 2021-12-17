@@ -4,8 +4,10 @@ import torch
 import random
 import numpy as np
 import pandas as pd
+from scipy.sparse import csr_matrix
 
 from evaluation.eval import evaluate
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 
 def set_seed(seed):
@@ -24,12 +26,21 @@ def scores_mean_std(all_scores):
     return all_scores.to_dict()
 
 
-def load_dataset(path='output/datasets_phase2/joint_embedding/openproblems_bmmc_multiome_phase2/openproblems_bmmc_multiome_phase2.censor_dataset.output_'):
+def load_dataset(path='output/datasets_phase2/joint_embedding/openproblems_bmmc_multiome_phase2/openproblems_bmmc_multiome_phase2.censor_dataset.output_',
+                 minmax_norm=False, std_norm=False):
     solution_path = path + "solution.h5ad"
     adata_solution = ad.read_h5ad(solution_path)
     ad_mod1 = ad.read_h5ad(path + 'mod1.h5ad')
     ad_mod2 = ad.read_h5ad(path + 'mod2.h5ad')
-    
+    if minmax_norm:
+        ad_mod1.X = MinMaxScaler().fit_transform(ad_mod1.X.todense())
+        # ad_mod2.X = csr_matrix(MinMaxScaler().fit_transform(ad_mod2.X.todense()))
+    if std_norm:
+        ad_mod1.X = StandardScaler().fit_transform(ad_mod1.X.todense())
+        # ad_mod2.X = StandardScaler().fit_transform(ad_mod2.X)
+    ad_mod1.X = csr_matrix(ad_mod1.X)
+    # ad_mod2.X = csr_matrix(ad_mod2.X)
+
     ad_mod1.obs['cell_type'] = adata_solution.obs['cell_type'][ad_mod1.obs_names]
     return ad_mod1, ad_mod2, adata_solution
 
@@ -47,7 +58,6 @@ def evaluate_solution(ad_solution, embedding, run_name):
 
     # Preprocessing
     adata.obsm['X_emb'] = adata.X
-    adata.write(f"output/embeddings/{run_name}.h5ad")
     sc.pp.neighbors(adata, use_rep="X")
     sc.tl.umap(adata)
     sc.pl.umap(adata, color='cell_type', save=f"/{run_name}_celltype_plot.png")

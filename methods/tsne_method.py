@@ -5,7 +5,7 @@ import argparse
 import mlflow
 import torch
 import numpy as np
-import umap
+from sklearn.manifold import TSNE
 from utils import load_dataset, evaluate_solution
 
 
@@ -24,17 +24,16 @@ def main():
     parser.add_argument("--use_sample_data", action='store_true')
     parser.add_argument("--n_dim", type=int, default=100)
     parser.add_argument("--run_name", default=None, type=str, help="name of the mlflow run")
-    parser.add_argument("--minmax_norm", action="store_true")
 
     args = parser.parse_args()
     if args.use_sample_data:
         args.dataset_path = "sample_data/openproblems_bmmc_multiome_starter/openproblems_bmmc_multiome_starter."
 
 
-    ad_mod1, ad_mod2, ad_solution = load_dataset(args.dataset_path, args.minmax_norm)
+    ad_mod1, ad_mod2, ad_solution = load_dataset(path=args.dataset_path)
     n_dim = args.n_dim
 
-    embedder_mod1 = umap.UMAP(n_components=n_dim)
+    embedder_mod1 = TSNE(n_components=n_dim, method='exact')
     mod1_pca = embedder_mod1.fit_transform(ad_mod1.X)
     # 'Performing dimensionality reduction on modality 2 values...'
     # embedder_mod1 = umap.UMAP(n_components=n_dim // 2)

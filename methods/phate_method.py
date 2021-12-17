@@ -5,28 +5,11 @@ import argparse
 import mlflow
 import torch
 import numpy as np
-from sklearn.decomposition import TruncatedSVD
-from utils import load_dataset, evaluate_solution, set_seed, scores_mean_std
+import phate
+from utils import load_dataset, evaluate_solution
+
 
 EXPERIMENT_NAME="joint_embeddings"
-
-
-def method_evaluate(args, seed, dataset):
-    ad_mod1, ad_mod2, ad_solution = dataset
-    n_dim = args.n_dim
-    embedder_mod1 = TruncatedSVD(n_components=n_dim if args.gex_only else n_dim//2, random_state=seed)
-    mod1_pca = embedder_mod1.fit_transform(ad_mod1.X)
-    # 'Performing dimensionality reduction on modality 2 values...'
-    embedder_mod1 = TruncatedSVD(n_components=n_dim//2, random_state=seed)
-    mod2_pca = embedder_mod1.fit_transform(ad_mod2.X)
-
-    # 'Concatenating datasets'
-    if args.gex_only:
-        pca_combined = mod1_pca
-    else:
-        pca_combined = np.concatenate([mod1_pca, mod2_pca], axis=1)
-    scores = evaluate_solution(ad_solution, pca_combined, args.run_name)
-    return scores
 
 
 def main():
@@ -39,24 +22,31 @@ def main():
                                                   ".output_", type=str,
                         help="Path to the dataset.")
     parser.add_argument("--use_sample_data", action='store_true')
-    parser.add_argument("--gex_only", action='store_true')
     parser.add_argument("--n_dim", type=int, default=100)
-    parser.add_argument("--seeds", type=int, default=1)
-    parser.add_argument("--init_seed", type=int, default=42)
     parser.add_argument("--run_name", default=None, type=str, help="name of the mlflow run")
     parser.add_argument("--minmax_norm", action="store_true")
-    parser.add_argument("--std_norm", action="store_true")
 
     args = parser.parse_args()
     if args.use_sample_data:
         args.dataset_path = "sample_data/openproblems_bmmc_multiome_starter/openproblems_bmmc_multiome_starter."
 
-    set_seed(args.init_seed)
-    dataset = load_dataset(args.dataset_path, args.minmax_norm, args.std_norm)
-    all_scores = []
-    for seed in range(args.seeds):
-        all_scores.append(method_evaluate(args, seed, dataset))
-    all_scores = scores_mean_std(all_scores)
+
+    ad_mod1, ad_mod2, ad_solution = load_dataset(args.dataset_path, args.minmax_norm)
+    n_dim = args.n_dim
+
+    embedder_mod1 = phate.PHATE(n_components=n_dim)
+    mod1_pca = embedder_mod1.fit_transform(ad_mod1.X)
+    # 'Performing dimensionality reduction on modality 2 values...'
+    # embedder_mod1 = umap.UMAP(n_components=n_dim // 2)
+    # mod2_pca = embedder_mod1.fit_transform(ad_mod2.X)
+    del ad_mod2
+    del ad_mod1
+
+    # 'Concatenating datasets'
+    pca_combined = mod1_pca#np.concatenate([mod1_pca, mod2_pca], axis=1)
+    scores = evaluate_solution(ad_solution, pca_combined, args.run_name)
+    print(scores)
+
     mlflow.set_experiment(EXPERIMENT_NAME)
     with mlflow.start_run(run_name=args.run_name):
         mlflow.log_params({
@@ -66,7 +56,7 @@ def main():
         })
         mlflow.log_params(vars(args))
 
-        for key, value in all_scores.items():
+        for key, value in scores.items():
             mlflow.log_metric(key, value)
 
 if __name__ == "__main__":
