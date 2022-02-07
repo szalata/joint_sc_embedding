@@ -13,17 +13,18 @@ from utils import load_dataset
 
 
 class MultiomeDataset(Dataset):
-    def __init__(self, expression, batch, obs_name):
+    def __init__(self, expression, batch, obs_name, batch_label):
         self.expression = expression
         self.batch = batch
         self.obs_name = obs_name
+        self.batch_label = batch_label
 
     def __len__(self):
         return self.expression.shape[0]
 
     def __getitem__(self, idx):
         return {"expression": np.asarray(self.expression[idx].todense()).squeeze(-2),
-                "batch": self.batch[idx]}
+                "batch_label": self.batch_label[idx]}
 
 
 
@@ -55,7 +56,8 @@ class MultiomeDataModule(pl.LightningDataModule):
         self.dataset_params = {
             "expression": expression,
             "batch": batch_one_hot,
-            "obs_name": obs_names
+            "obs_name": obs_names,
+            "batch_label": batches[0].astype("category").cat.codes.values
         }
 
         self.batch_size = batch_size

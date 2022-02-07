@@ -14,10 +14,11 @@ EXPERIMENT_NAME="joint_embeddings"
 def method_evaluate(args, seed, dataset):
     ad_mod1, ad_mod2, ad_solution = dataset
     n_dim = args.n_dim
-    embedder_mod1 = TruncatedSVD(n_components=n_dim if args.gex_only else n_dim//2, random_state=seed)
+    gex_dim = args.gex_dim
+    embedder_mod1 = TruncatedSVD(n_components=n_dim if args.gex_only else gex_dim, random_state=seed)
     mod1_pca = embedder_mod1.fit_transform(ad_mod1.X)
     # 'Performing dimensionality reduction on modality 2 values...'
-    embedder_mod1 = TruncatedSVD(n_components=n_dim//2, random_state=seed)
+    embedder_mod1 = TruncatedSVD(n_components=n_dim - gex_dim, random_state=seed)
     mod2_pca = embedder_mod1.fit_transform(ad_mod2.X)
 
     # 'Concatenating datasets'
@@ -41,6 +42,7 @@ def main():
     parser.add_argument("--use_sample_data", action='store_true')
     parser.add_argument("--gex_only", action='store_true')
     parser.add_argument("--n_dim", type=int, default=100)
+    parser.add_argument("--gex_dim", type=int, default=50)
     parser.add_argument("--seeds", type=int, default=1)
     parser.add_argument("--init_seed", type=int, default=42)
     parser.add_argument("--run_name", default=None, type=str, help="name of the mlflow run")

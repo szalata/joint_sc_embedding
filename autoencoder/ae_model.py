@@ -1,5 +1,6 @@
 import numpy as np
 import pytorch_lightning as pl
+from pytorch_metric_learning import losses
 import torch
 
 from torch import nn
@@ -17,8 +18,10 @@ class AEModel(pl.LightningModule):
         layer_sizes = np.array([0] + layer_sizes + [0]).astype(int)
         layer_sizes[-1] = args.embedding_dim
         layer_sizes[0] = args.expression_dim
+        self.info_nce_weight = args.info_nce_weight
 
         self.mse = MeanSquaredError(dist_sync_on_step=True)
+        self.contrastive_loss = losses.ContrastiveLoss(pos_margin=1, neg_margin=0)
 
         STARTING_LOWEST_MSE = 9999
         self.lowest_mse = STARTING_LOWEST_MSE
@@ -67,10 +70,11 @@ class AEModel(pl.LightningModule):
         out = x
         for layer in self.encoder:
             out = layer(out)
-        if return_encoding:
-            return out
+        emb = out.clone()
         for layer in self.decoder:
             out = layer(out)
+        if return_encoding:
+            return out, emb
         return out
 
     def _epoch_end(self, outputs, split):
@@ -85,9 +89,10 @@ class AEModel(pl.LightningModule):
             self.log(f"best_mse_{split}", cur_mse)
 
     def _step(self, batch):
-        preds = self(batch["expression"])
-        loss = F.mse_loss(preds, batch["expression"])
-        out = {"loss": loss, "preds": preds.detach(), "target": batch["expression"]}
+        preds, emb = self(batch["expression"], return_encoding=True)
+        loss_ae = F.mse_loss(preds, batch["expression"])
+        loss_nce = self.contrastive_loss(emb, batch["batch_label"])
+        out = {"loss": loss_ae - loss_nce * self.info_nce_weight, "preds": preds.detach(), "target": batch["expression"]}
         return out
 
     def training_step(self, batch, _):
@@ -97,7 +102,7 @@ class AEModel(pl.LightningModule):
         return self._step(batch)
 
     def validation_step(self, batch, _):
-        emb = self(batch["expression"], return_encoding=True)
+        emb = self(batch["expression"], return_encoding=True)[1]
         out = {"emb": emb}
         return out
 

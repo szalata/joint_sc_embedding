@@ -9,7 +9,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import MLFlowLogger
 
 sys.path.append('/mnt/storage01/szalata/autoencoders')
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="3"
 
 import argparse
 import mlflow
@@ -57,7 +57,7 @@ def main():
     parser.add_argument("--use_sample_data", action='store_true')
     parser.add_argument("--use_raw_counts", action='store_true')
 
-    parser.add_argument("--batch_size", type=int, default=256)
+    parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--minmax_norm", action="store_true")
     parser.add_argument("--std_norm", action="store_true")
 
@@ -66,6 +66,7 @@ def main():
     parser.add_argument("--embedding_dim", type=int, default=100)
     parser.add_argument("--batchnorm", action="store_true")
     parser.add_argument("--dropout_p", type=float, default=0)
+    parser.add_argument("--info_nce_weight", type=float, default=0.1)
     parser.add_argument("--layer_size_multiplier", type=float, default=2)
     parser.add_argument("--n_hidden", type=int, default=2)
 
